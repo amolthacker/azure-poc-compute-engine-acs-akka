@@ -1,0 +1,34 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  labels:
+    run: ve
+  name: ve
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: ve
+  template:
+    metadata:
+      labels:
+        run: ve
+    spec:
+      containers:
+      - name: ve
+        image: amolthacker/azure-poc-compute-engine-acs-akka
+        env:
+        - name: SEED_NODES
+          value: ve-ctrl-0.ve-ctrl,ve-ctrl-1.ve-ctrl
+        - name: HOST_NAME
+          valueFrom:
+            fieldRef:
+              apiVersion: v1
+              fieldPath: status.podIP
+        command: ["/bin/sh", "-c", "java -Djava.library.path=/usr/local/lib -cp /tds-veritas/compute/compute-engine-akka-0.1.0-ve.jar com.td.veritas.valengine.akka.Valengine 7000"]
+        livenessProbe:
+          tcpSocket:
+            port: 7000
+        ports:
+        - containerPort: 7000
+          protocol: TCP

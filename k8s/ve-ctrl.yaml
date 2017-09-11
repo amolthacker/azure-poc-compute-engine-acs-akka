@@ -1,0 +1,43 @@
+apiVersion: apps/v1beta1
+kind: StatefulSet
+metadata:
+  labels:
+    run: ve-ctrl
+  name: ve-ctrl
+spec:
+  serviceName: ve-ctrl
+  replicas: 2
+  selector:
+    matchLabels:
+      run: ve-ctrl
+  template:
+    metadata:
+      labels:
+        run: ve-ctrl
+    spec:
+      containers:
+      - name: ve-ctrl
+        image: amolthacker/azure-poc-compute-engine-acs-akka
+        env:
+        - name: POD_NAME
+          valueFrom:
+            fieldRef:
+              fieldPath: metadata.name
+#        - name: BIND_HOST_NAME
+#          valueFrom:
+#            fieldRef:
+#              apiVersion: v1
+#              fieldPath: status.podIP
+        - name: SEED_NODES
+          value: ve-ctrl-0.ve-ctrl,ve-ctrl-1.ve-ctrl
+        command: ["/bin/sh", "-c", "HOST_NAME=${POD_NAME}.ve-ctrl java -cp /tds-veritas/compute/compute-engine-akka-0.1.0-ve.jar com.td.veritas.valengine.akka.Controller"]
+        livenessProbe:
+          tcpSocket:
+            port: 7000
+        ports:
+        - containerPort: 7000
+          protocol: TCP
+          name: comm
+        - containerPort: 7777
+          protocol: TCP
+          name: http
